@@ -44,7 +44,7 @@ groups:
           severity: critical
         annotations:
           summary: "SSL certificate for {{ $labels.instance }} has expired"
-          description: "SSL certificate for {{ $labels.instance }} has expired {{ $value | abs | humanizeDuration }} ago."
+          description: "SSL certificate for {{ $labels.instance }} has expired {{ $value | humanizeDuration }} ago."
           
       - alert: DNSResolutionFailed
         expr: dns_lookup_seconds{job="acronymmeaning"} == -1

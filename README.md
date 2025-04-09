@@ -101,6 +101,10 @@ That's it! You're now monitoring your server! 🎉
 - SSL certificate expiration
 - DNS resolution failures
 
+### Alerting
+- Alerts are sent to MatterMost using the following webhook:
+  - Webhook URL: http://localhost:8065/hooks/6xr6s3997jb18jo9n11wsojfxw
+
 ## Maintenance
 
 ### Starting Services

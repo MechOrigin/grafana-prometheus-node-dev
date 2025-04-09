@@ -1,10 +1,49 @@
+# config file version
 apiVersion: 1
 
+# list of datasources to insert/update
 datasources:
+  # <string, required> name of the datasource. Required
   - name: Prometheus
+    # <string, required> datasource type. Required
     type: prometheus
+    # <string, required> access mode. direct or proxy. Required
     access: proxy
+    # <string> url
     url: http://prometheus:9090
+    # <string> database password, if used
+    password:
+    # <string> database user, if used
+    user:
+    # <string> database name, if used
+    database:
+    # <bool> enable/disable basic auth
+    basicAuth: false
+    # <string> basic auth username, if used
+    basicAuthUser:
+    # <string> basic auth password, if used
+    basicAuthPassword:
+    # <bool> enable/disable with credentials headers
+    withCredentials: false
+    # <bool> mark as default datasource. Max one per org
     isDefault: true
+    # <map> fields that will be converted to json and stored in json_data
+    jsonData:
+      httpMethod: POST
+      manageAlerts: true
+      prometheusType: Prometheus
+      prometheusVersion: 2.45.0
+      cacheLevel: None
+      incrementalQueryOverlapWindow: 10m
+      queryTimeout: 30s
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: tempo
+    # <string> json object of data that will be encrypted
+    secureJsonData:
+      # <string> database password, if used
+      password:
+    version: 1
+    # <bool> allow users to edit datasources from the UI.
     editable: true
-    version: 1 
+    uid: prometheus 

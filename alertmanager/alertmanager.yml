@@ -13,11 +13,6 @@ receivers:
     webhook_configs:
       - url: 'http://localhost:8065/hooks/6xr6s3997jb18jo9n11wsojfxw'
         send_resolved: true
-        title: '{{ template "mattermost.default.title" . }}'
-        text: '{{ template "mattermost.default.text" . }}'
-        title_link: '{{ template "mattermost.default.titlelink" . }}'
-        footer: '{{ template "mattermost.default.footer" . }}'
-        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
 
 templates:
   - '/etc/alertmanager/template/*.tmpl' 

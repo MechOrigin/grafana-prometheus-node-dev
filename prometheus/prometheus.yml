@@ -2,39 +2,40 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
-alerting:
-  alertmanagers:
-    - static_configs:
-        - targets:
-          - 'alertmanager:9093'
-
 rule_files:
   - "rules/website_alerts.yml"
 
 scrape_configs:
-  - job_name: 'prometheus'
+  - job_name: blackbox
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
     static_configs:
-      - targets: ['localhost:9090']
-
-  - job_name: 'node-exporter'
-    static_configs:
-      - targets: ['node-exporter:9100']
-
-  - job_name: 'acronymmeaning'
-    scheme: 'https'
-    static_configs:
-      - targets: ['acronymmeaning.com']
-    scrape_interval: 30s
-    scrape_timeout: 10s
-    metrics_path: '/'
+      - targets:
+          - https://acronymmeaning.com
+        labels:
+          what: blackbox_target
+          site: acronymmeaning
     relabel_configs:
       - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
         target_label: instance
-        regex: '([^:]+)(?::\d+)?'
-        replacement: '${1}'
+      - target_label: __address__
+        replacement: host.docker.internal:9115
 
-  - job_name: 'websites'
-    metrics_path: '/metrics'
+  - job_name: nextjs
+    metrics_path: /api/metrics
     static_configs:
-      - targets: ['your-website-1:8080', 'your-website-2:8080']
-    # Add more website targets as needed 
+      - targets:
+          - host.docker.internal:3000
+        labels:
+          what: nextjs_target
+          site: acronymmeaning
+
+  - job_name: node-exporter
+    static_configs:
+      - targets:
+          - node-exporter:9100
+        labels:
+          site: acronymmeaning
