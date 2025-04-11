@@ -29,7 +29,7 @@ datasources:
     isDefault: true
     # <map> fields that will be converted to json and stored in json_data
     jsonData:
-      httpMethod: POST
+      httpMethod: GET
       manageAlerts: true
       prometheusType: Prometheus
       prometheusVersion: 2.45.0
@@ -46,4 +46,4 @@ datasources:
     version: 1
     # <bool> allow users to edit datasources from the UI.
     editable: true
-    uid: prometheus 
+    uid: PBFA97CFB590B2093 

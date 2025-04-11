@@ -1,14 +1,72 @@
 groups:
+  - name: test_alerts
+    rules:
+      - alert: TestAlert
+        expr: vector(1)
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Test Alert - Please Acknowledge"
+          description: "This is a test alert to verify Mattermost integration is working properly"
+
   - name: website_alerts
     rules:
+      - alert: ImmediateTestAlert
+        expr: 1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Immediate Test Alert"
+          description: "This is an immediate test alert to verify the alerting pipeline."
+
+      - alert: FrequentTestAlert
+        expr: (time() % 60) < bool 30
+        for: 10s
+        labels:
+          severity: info
+        annotations:
+          summary: "Frequent Test Alert"
+          description: "This alert fires every minute for 30 seconds."
+
+      - alert: CriticalTestAlert
+        expr: (time() % 300) < bool 60
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical Test Alert"
+          description: "This is a critical test alert that fires every 5 minutes."
+
+      - alert: MultiLabelTestAlert
+        expr: (time() % 600) < bool 60
+        for: 30s
+        labels:
+          severity: warning
+          environment: test
+          service: monitoring
+        annotations:
+          summary: "Multi-Label Test Alert"
+          description: "This alert includes multiple labels for testing."
+
+      - alert: TestAlert
+        expr: (time() % 300) < bool 60
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Test Alert - This is a test alert"
+          description: "This is a test alert that fires every 5 minutes for 1 minute to verify the alerting pipeline."
+
       - alert: WebsiteDown
-        expr: up{job="acronymmeaning"} == 0
+        expr: probe_success == 0
         for: 1m
         labels:
           severity: critical
         annotations:
           summary: "Website {{ $labels.instance }} is down"
-          description: "Website {{ $labels.instance }} has been down for more than 1 minute."
+          description: "Website {{ $labels.instance }} is down"
 
       - alert: HighResponseTime
         expr: http_request_duration_seconds{job="acronymmeaning"} > 2
@@ -29,12 +87,12 @@ groups:
           description: "Website {{ $labels.instance }} has an error rate above 5% for more than 5 minutes."
           
       - alert: SSLCertificateExpiringSoon
-        expr: ssl_cert_not_after{job="acronymmeaning"} - time() < 86400 * 30
-        for: 1h
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+        for: 1m
         labels:
           severity: warning
         annotations:
-          summary: "SSL certificate for {{ $labels.instance }} is expiring soon"
+          summary: "SSL certificate for {{ $labels.instance }} will expire in less than 30 days"
           description: "SSL certificate for {{ $labels.instance }} will expire in {{ $value | humanizeDuration }}."
           
       - alert: SSLCertificateExpired

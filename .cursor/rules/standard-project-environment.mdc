@@ -1,0 +1,26 @@
+---
+description: This is for the the grafana-prometheus-node-dev droplet. You are to primarily work on this container unless otherwise specifified.
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+- You can @ files here
+- You can use markdown but dont have to
+
+- You dont need the root password, you have access to ssh automatically. But the dev root password is: !ASD123asd
+- Dont ever start docker on localhost until I specified otherwise. You have ssh access to the 167.71.155.226
+- We use Docker to host the Grafana, Prometheus and Node-exporter
+- We use DigitalOcean to host our Docker containers at 138.68.249.92 for Mattermost
+- We use DigitalOcean to host our Docker containers at 167.71.155.226 for Grafana-Promtheus-Node-dev
+- We use the Alertmanager plugin integration on Mattermost to grab all alerts from Alertmanager.
+- If there is a Data source issue on grafana or No Data, its probably a wrong UID, check that first.
+
+<!-- - We use Nextjs App Router 15+ for our React Framework
+- We use neon.tech for our database
+- We use Drizzle for our ORM
+- We use NextAuth for authentication
+- We use Vercel for our hosting
+- We use Stripe for our payment processing
+- We use components to make the system easier to understand and manage -->

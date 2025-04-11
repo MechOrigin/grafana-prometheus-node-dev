@@ -1,0 +1,5 @@
+{{ define "webhook.default" }}
+{
+  "text": "{{ range .Alerts }}🚨 **Alert: {{ .Labels.alertname }}**\n**Status:** {{ .Status }}\n**Severity:** {{ .Labels.severity }}\n**Description:** {{ .Annotations.description }}\n{{ if .Annotations.summary }}**Summary:** {{ .Annotations.summary }}{{ end }}\n\n{{ end }}"
+}
+{{ end }} 

@@ -2,10 +2,34 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+web:
+  enable_lifecycle: true
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - 'alertmanager:9093'
+
 rule_files:
   - "rules/website_alerts.yml"
 
 scrape_configs:
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets:
+        - 'alertmanager:9093'
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets:
+        - 'localhost:9090'
+
+  - job_name: 'grafana'
+    static_configs:
+      - targets:
+        - 'grafana:3000'
+
   - job_name: blackbox
     metrics_path: /probe
     params:
@@ -22,13 +46,13 @@ scrape_configs:
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: host.docker.internal:9115
+        replacement: blackbox-exporter:9115
 
   - job_name: nextjs
     metrics_path: /api/metrics
     static_configs:
       - targets:
-          - host.docker.internal:3000
+          - 138.68.249.92:3000
         labels:
           what: nextjs_target
           site: acronymmeaning
@@ -37,5 +61,13 @@ scrape_configs:
     static_configs:
       - targets:
           - node-exporter:9100
+        labels:
+          site: acronymmeaning
+
+  - job_name: acronymmeaning
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - https://acronymmeaning.com
         labels:
           site: acronymmeaning

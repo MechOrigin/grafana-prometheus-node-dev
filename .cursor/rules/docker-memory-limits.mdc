@@ -1,0 +1,38 @@
+---
+description: Docker memory limits syntax guide
+globs: ["**/docker-compose*.yml", "**/docker-compose*.yaml"]
+alwaysApply: false
+---
+
+# Docker Memory Limits Syntax
+
+## Standalone Docker (Non-Swarm Mode)
+Use these memory limit options for standard docker-compose:
+```yaml
+services:
+  myservice:
+    mem_limit: 150M        # Hard memory limit
+    memswap_limit: 150M    # Total amount of memory + swap
+    mem_reservation: 50M   # Soft memory limit (guaranteed minimum)
+```
+
+## Swarm Mode / Docker Stack
+Use these memory limit options when using docker stack deploy or swarm mode:
+```yaml
+services:
+  myservice:
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+        reservations:
+          memory: 50M
+```
+
+## Important Notes:
+- Use M for megabytes (e.g., 150M)
+- Use G for gigabytes (e.g., 1G)
+- mem_limit and deploy.resources cannot be used together
+- memswap_limit should typically match mem_limit to prevent swap usage
+- mem_reservation should be lower than mem_limit
+- For non-swarm deployments, always use the standalone syntax 

@@ -1,0 +1,19 @@
+mattermost:
+  webhook_url: "http://138.68.249.92:8065/hooks/ou4n5jny43fp5mttzmdokpuh1a"
+  timeout: 5
+
+templates:
+  critical:
+    icon: ":red_circle:"
+    title: "**CRITICAL ALERT**"
+    format: "{icon} {title}\nAlert: {alertname}\nStatus: {status}\nService: {service}\nInstance: {instance}\nSummary: {summary}\nDescription: {description}\nRunbook: {runbook}"
+  
+  warning:
+    icon: ":warning:"
+    title: "**WARNING ALERT**"
+    format: "{icon} {title}\nAlert: {alertname}\nStatus: {status}\nService: {service}\nSummary: {summary}\nDescription: {description}"
+  
+  info:
+    icon: ":information_source:"
+    title: "**INFO ALERT**"
+    format: "{icon} {title}\nAlert: {alertname}\nStatus: {status}\nService: {service}\nSummary: {summary}" 

@@ -1,0 +1,87 @@
+{{ define "mattermost.title" }}
+[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
+{{ end }}
+
+{{ define "mattermost.text" }}
+{{ if gt (len .Alerts.Firing) 0 }}
+**Alerts Firing:**
+{{ range .Alerts.Firing }}
+• **Alert:** {{ .Labels.alertname }}
+  **Severity:** {{ .Labels.severity }}
+  **Summary:** {{ .Annotations.summary }}
+  **Description:** {{ .Annotations.description }}
+  **Started:** {{ .StartsAt | since }}
+{{ end }}
+{{ end }}
+{{ if gt (len .Alerts.Resolved) 0 }}
+**Alerts Resolved:**
+{{ range .Alerts.Resolved }}
+• **Alert:** {{ .Labels.alertname }}
+  **Severity:** {{ .Labels.severity }}
+  **Summary:** {{ .Annotations.summary }}
+  **Description:** {{ .Annotations.description }}
+  **Resolved:** {{ .EndsAt | since }}
+{{ end }}
+{{ end }}
+{{ end }}
+
+{{ define "mattermost.default" }}
+{
+  "username": "Alertmanager",
+  "text": "🚨 *Alert:* {{ .CommonLabels.alertname }}\n*Status:* {{ .Status }}\n*Severity:* {{ .CommonLabels.severity }}\n*Description:* {{ .CommonAnnotations.description }}"
+}
+{{ end }}
+
+{{ define "mattermost.default.title" }}
+[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}
+{{ end }}
+
+{{ define "mattermost.default.text" }}
+{{ range .Alerts }}
+*Alert:* {{ .Labels.alertname }}
+*Severity:* {{ .Labels.severity }}
+*Description:* {{ .Annotations.description }}
+*Summary:* {{ .Annotations.summary }}
+*Start Time:* {{ .StartsAt }}
+{{ if .Labels.instance }}*Instance:* {{ .Labels.instance }}{{ end }}
+---
+{{ end }}
+{{ end }}
+
+{{ define "mattermost.default.titlelink" }}
+{{ .ExternalURL }}
+{{ end }}
+
+{{ define "mattermost.default.footer" }}
+Alertmanager
+{{ end }}
+
+{{ define "mattermost.default.footericon" }}
+https://raw.githubusercontent.com/prometheus/alertmanager/master/logo.png
+{{ end }}
+
+{{ define "mattermost.default.iconemoji" }}
+:warning:
+{{ end }}
+
+{{ define "mattermost.default.iconurl" }}
+https://raw.githubusercontent.com/prometheus/alertmanager/master/logo.png
+{{ end }}
+
+{{ define "mattermost.default.username" }}
+Alertmanager
+{{ end }}
+
+{{ define "default.message" }}
+{
+  "username": "Alertmanager",
+  "icon_emoji": ":warning:",
+  "text": "{{ range .Alerts.Firing }}🔥 *Alert Firing:* {{ .Labels.alertname }}\n*Severity:* {{ .Labels.severity }}\n*Description:* {{ .Annotations.description }}\n---\n{{ end }}{{ range .Alerts.Resolved }}✅ *Alert Resolved:* {{ .Labels.alertname }}\n*Severity:* {{ .Labels.severity }}\n*Description:* {{ .Annotations.description }}\n---\n{{ end }}" | toJson
+}
+{{ end }}
+
+{{ define "mattermost.default.message" }}
+{
+  "text": "{{ if .Status.Firing }}🚨 Alert Firing: {{ else }}✅ Alert Resolved: {{ end }}{{ .CommonLabels.alertname }}"
+}
+{{ end }} 

@@ -1,0 +1,28 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+  receiver: 'mattermost'
+
+receivers:
+- name: 'mattermost'
+  webhook_configs:
+  - url: 'http://138.68.249.92:8065/hooks/ou4n5jny43fp5mttzmdokpuh1a'
+    send_resolved: true
+    http_config:
+      tls_config:
+        insecure_skip_verify: true
+
+templates:
+- '/etc/alertmanager/templates/*.tmpl'
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname'] 

@@ -1,0 +1,49 @@
+{{ define "mattermost.title" }}#### [{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}{{ end }}
+
+{{ define "mattermost.text" }}
+**Alert Details:**
+* Status: {{ .Status | toUpper }}
+* Severity: {{ .CommonLabels.severity }}
+* Description: {{ .CommonAnnotations.description }}
+
+{{ if .Alerts.Firing }}**Firing Alerts:**
+{{ range .Alerts.Firing }}
+* Alert: {{ .Labels.alertname }}
+* Instance: {{ .Labels.instance }}
+* Description: {{ .Annotations.description }}
+* Started: {{ .StartsAt | since }}
+{{ end }}{{ end }}
+
+{{ if .Alerts.Resolved }}**Resolved Alerts:**
+{{ range .Alerts.Resolved }}
+* Alert: {{ .Labels.alertname }}
+* Instance: {{ .Labels.instance }}
+* Description: {{ .Annotations.description }}
+* Duration: {{ .StartsAt | since }} - {{ .EndsAt | since }}
+{{ end }}{{ end }}{{ end }}
+
+{{ define "mattermost.default" }}
+{
+  "version": "4",
+  "groupKey": "{{ .GroupKey }}",
+  "status": "{{ .Status }}",
+  "receiver": "{{ .Receiver }}",
+  "groupLabels": {{ .GroupLabels | toJson }},
+  "commonLabels": {{ .CommonLabels | toJson }},
+  "commonAnnotations": {{ .CommonAnnotations | toJson }},
+  "externalURL": "{{ .ExternalURL }}",
+  "alerts": [
+    {{- range $index, $alert := .Alerts -}}
+    {{- if $index }}, {{ end }}
+    {
+      "status": "{{ $alert.Status }}",
+      "labels": {{ $alert.Labels | toJson }},
+      "annotations": {{ $alert.Annotations | toJson }},
+      "startsAt": "{{ $alert.StartsAt }}",
+      "endsAt": "{{ $alert.EndsAt }}",
+      "generatorURL": "{{ $alert.GeneratorURL }}"
+    }
+    {{- end }}
+  ]
+}
+{{ end }} 

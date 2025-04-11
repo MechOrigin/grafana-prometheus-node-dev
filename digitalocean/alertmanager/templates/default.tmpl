@@ -1,0 +1,5 @@
+{{ define "mattermost.default" }}
+{
+  "text": "🚨 **Alert: {{ .GroupLabels.alertname }}**\n\n**Status:** {{ .Status }}\n**Severity:** {{ .CommonLabels.severity }}\n**Description:** {{ .CommonAnnotations.description }}\n{{ if .CommonAnnotations.summary }}**Summary:** {{ .CommonAnnotations.summary }}{{ end }}"
+}
+{{ end }}

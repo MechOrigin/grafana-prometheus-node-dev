@@ -1,0 +1,240 @@
+---
+description: Grafana-Prometheus-Node Development Environment
+globs: 
+alwaysApply: true
+---
+# Grafana-Prometheus-Node Development Environment
+
+## Overview
+This documentation outlines the configuration and best practices for the grafana-prometheus-node-dev monitoring stack, focusing on efficient communication between Alertmanager and Mattermost.
+
+## Infrastructure Details
+- **Environment**: Development
+- **Primary Server**: 167.71.155.226 (DigitalOcean Droplet)
+- **Mattermost Server**: 138.68.249.92:8065
+- **Alert Webhook**: http://138.68.249.92:8065/hooks/ou4n5jny43fp5mttzmdokpuh1a
+
+### Mattermost Server Network Configuration
+- **Public IPv4**: 138.68.249.92
+- **Public Gateway**: 138.68.240.1
+- **Subnet Mask**: 255.255.240.0
+- **Port**: 8065 (Mattermost)
+- **Environment**: Development
+- **Platform**: DigitalOcean Droplet
+
+## Project Structure
+```
+.
+├── alertmanager/          # Alertmanager configuration
+│   ├── alertmanager.yml   # Main config file
+│   └── templates/         # Alert templates
+├── blackbox/             # Blackbox exporter configuration
+│   └── blackbox.yml      # Endpoint monitoring config
+├── grafana/              # Grafana configuration
+│   ├── provisioning/     # Datasources and dashboards
+│   └── grafana.ini       # Main config file
+├── prometheus/           # Prometheus configuration
+│   └── prometheus.yml    # Main config file
+└── docker-compose.yml    # Service orchestration
+```
+
+## Service Configuration Standards
+
+### Docker Compose Best Practices
+- Use version '3.8' for modern Docker features
+- Implement memory limits and reservations
+- Use read-only volume mounts where possible
+- Configure proper networking with aliases
+- Implement least privilege principle
+- Use no-new-privileges security option
+
+### YAML File Standards
+- Use 2-space indentation
+- Use meaningful comments
+- Group related configurations
+- Use consistent naming conventions
+- Validate YAML syntax before deployment
+
+### JSON File Standards
+- Use 2-space indentation
+- Include proper error handling
+- Use consistent property naming
+- Validate JSON schema
+- Keep configurations DRY
+
+## Monitoring Stack Components
+
+### Prometheus Configuration
+- Retention: 15 days
+- Storage: Local persistent volume
+- Port: 127.0.0.1:9090 (internal)
+- Memory Limits: 2GB max, 1GB reserved
+- User: nobody (security)
+
+### Alertmanager Configuration
+- External URL: http://167.71.155.226:9093
+- Port: 127.0.0.1:9093 (internal)
+- Memory Limits: 512MB max, 256MB reserved
+- User: nobody (security)
+
+### Grafana Configuration
+- External URL: http://167.71.155.226:3001
+- Port: 3001:3000
+- Memory Limits: 1GB max, 512MB reserved
+- User: grafana (security)
+- Anonymous access: Disabled
+- Signup: Disabled
+
+### Node Exporter Configuration
+- Port: 127.0.0.1:9100 (internal)
+- Memory Limits: 256MB max, 128MB reserved
+- User: nobody (security)
+- Collectors: CPU, Memory, Load, Network
+
+### Blackbox Exporter Configuration
+- Port: 127.0.0.1:9115 (internal)
+- Memory Limits: 256MB max, 128MB reserved
+- User: nobody (security)
+
+## Alert Routing Configuration
+
+### Severity Levels
+1. **Critical**
+   - Group wait: 10s
+   - Repeat interval: 1h
+   - Max alerts: 20
+   - Template: Full details with runbook
+
+2. **Warning**
+   - Group wait: 30s
+   - Repeat interval: 2h
+   - Max alerts: 15
+   - Template: Standard details
+
+3. **Info**
+   - Group wait: 1m
+   - Repeat interval: 6h
+   - Max alerts: 10
+   - Template: Basic details
+
+### Alert Grouping
+- Group by: alertname, cluster, service, severity
+- Default group wait: 30s
+- Default group interval: 5m
+- Default repeat interval: 4h
+
+### Inhibition Rules
+1. Critical → Warning
+   - Equal labels: alertname, cluster, service
+2. Warning → Info
+   - Equal labels: alertname, cluster, service
+
+## Network Configuration
+
+### Docker Network
+- Driver: bridge
+- Subnet: 172.20.0.0/16
+- Internal communication via service aliases
+
+### Mattermost Network
+- Public IPv4: 138.68.249.92
+- Gateway: 138.68.240.1
+- Subnet: 255.255.240.0
+- Exposed Port: 8065
+- Webhook Endpoint: /hooks/ou4n5jny43fp5mttzmdokpuh1a
+
+### Security
+- All internal ports bound to localhost
+- External access through reverse proxy
+- TLS configuration for secure communication
+- No-new-privileges security option enabled
+- Firewall rules to allow only necessary ports
+- Regular network security audits
+
+## Mattermost Integration
+
+### Webhook Configuration
+- URL: http://138.68.249.92:8065/hooks/ou4n5jny43fp5mttzmdokpuh1a
+- Follow redirects: enabled
+- TLS verification: enabled
+
+### Message Templates
+1. **Critical Alerts**
+   ```
+   :red_circle: **CRITICAL ALERT**
+   Alert: {alertname}
+   Status: {status}
+   Service: {service}
+   Instance: {instance}
+   Summary: {summary}
+   Description: {description}
+   Runbook: {runbook}
+   ```
+
+2. **Warning Alerts**
+   ```
+   :warning: **WARNING ALERT**
+   Alert: {alertname}
+   Status: {status}
+   Service: {service}
+   Summary: {summary}
+   Description: {description}
+   ```
+
+3. **Info Alerts**
+   ```
+   :information_source: **INFO ALERT**
+   Alert: {alertname}
+   Status: {status}
+   Service: {service}
+   Summary: {summary}
+   ```
+
+## Maintenance Procedures
+
+### Backup Locations
+- Prometheus data: prometheus_data volume
+- Grafana data: grafana_data volume
+- Alertmanager data: alertmanager_data volume
+
+### Configuration Updates
+1. Edit configuration files
+2. Validate YAML syntax
+3. Test configuration
+4. Reload services or restart if necessary
+
+### Health Checks
+- Monitor service resource usage
+- Check alert delivery latency
+- Verify Mattermost webhook connectivity
+- Monitor disk usage for persistent volumes
+
+## Best Practices
+
+### Security
+- Use least privilege principle
+- Implement read-only filesystem where possible
+- Secure sensitive configurations
+- Regular security updates
+- Monitor access logs
+
+### Performance
+- Implement proper resource limits
+- Monitor memory usage
+- Optimize alert grouping
+- Regular cleanup of old data
+- Monitor network latency
+
+### Maintenance
+- Regular backup verification
+- Configuration version control
+- Document all changes
+- Monitor system resources
+- Regular health checks
+
+### Alerting
+- Clear and concise alert messages
+- Proper alert routing
+- Avoid alert fatigue
+- Regular alert rule review
+- Document runbooks for critical alerts

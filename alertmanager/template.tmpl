@@ -1,0 +1,1 @@
+{{ define \"mattermost.message\" }}🚨 Alert: {{ .CommonLabels.alertname }}\nSeverity: {{ .CommonLabels.severity }}\n{{ range .Alerts }}Description: {{ .Annotations.description }}\n{{ end }}{{ end }}

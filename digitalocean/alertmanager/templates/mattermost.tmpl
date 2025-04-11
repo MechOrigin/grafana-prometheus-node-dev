@@ -1,0 +1,44 @@
+{{ define "mattermost.title" }}
+[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
+{{ end }}
+
+{{ define "mattermost.text" }}
+**Alert:** {{ .CommonLabels.alertname }}
+**Status:** {{ .Status | toUpper }}
+**Severity:** {{ .CommonLabels.severity }}
+**Description:** {{ .CommonAnnotations.description }}
+**Summary:** {{ .CommonAnnotations.summary }}
+{{ end }}
+
+{{ define "mattermost.default" }}
+{
+  "text": "{{ range .Alerts }}🚨 **Alert: {{ .Labels.alertname }}**\n**Status:** {{ .Status }}\n**Severity:** {{ .Labels.severity }}\n**Description:** {{ .Annotations.description }}\n{{ if .Annotations.summary }}**Summary:** {{ .Annotations.summary }}{{ end }}\n\n{{ end }}"
+}
+{{ end }}
+
+{{ define "mattermost.default.title" }}
+[{{ .Status | toUpper }}] {{ .GroupLabels.alertname }}
+{{ end }}
+
+{{ define "mattermost.default.text" }}
+{{ if gt (len .Alerts.Firing) 0 }}
+*Alerts Firing:*
+{{ range .Alerts.Firing }}
+• {{ .Labels.alertname }}: {{ .Annotations.description }}
+{{ end }}
+{{ end }}
+{{ if gt (len .Alerts.Resolved) 0 }}
+*Alerts Resolved:*
+{{ range .Alerts.Resolved }}
+• {{ .Labels.alertname }}: {{ .Annotations.description }}
+{{ end }}
+{{ end }}
+{{ end }}
+
+{{ define "default.message" }}
+{
+  "username": "Alertmanager",
+  "icon_emoji": ":warning:",
+  "text": "{{ range .Alerts.Firing }}🔥 *Alert Firing:* {{ .Labels.alertname }}\n*Severity:* {{ .Labels.severity }}\n*Description:* {{ .Annotations.description }}\n---\n{{ end }}{{ range .Alerts.Resolved }}✅ *Alert Resolved:* {{ .Labels.alertname }}\n*Severity:* {{ .Labels.severity }}\n*Description:* {{ .Annotations.description }}\n---\n{{ end }}" | toJson
+}
+{{ end }} 
