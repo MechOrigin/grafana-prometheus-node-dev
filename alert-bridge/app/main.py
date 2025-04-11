@@ -32,7 +32,10 @@ async def receive_alert(request: Request):
         logger.info("Received alert", extra={"alert_data": alert_data})
         
         with ALERT_LATENCY.time():
-            for alert in alert_data.get('alerts', []):
+            # Handle both list and dictionary inputs
+            alerts = alert_data if isinstance(alert_data, list) else alert_data.get('alerts', [])
+            
+            for alert in alerts:
                 severity = alert.get('labels', {}).get('severity', 'unknown')
                 ALERT_COUNTER.labels(severity=severity).inc()
                 
@@ -67,6 +70,7 @@ async def receive_alert(request: Request):
 
 @app.get("/health")
 async def health_check():
+    """Health check endpoint for Docker."""
     return {"status": "healthy"}
 
 @app.get("/metrics")
