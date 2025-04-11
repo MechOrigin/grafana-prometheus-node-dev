@@ -1,31 +1,28 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
-from fastapi.responses import Response
 import requests
 import logging
-import json
-from typing import Dict, Any
+from prometheus_client import Counter, Histogram, start_http_server
 import time
-from .utils.transformer import transform_alert
-from .utils.logger import setup_logger
 from .config import load_config
+from .utils.transformer import transform_alert
 
 # Initialize FastAPI app
-app = FastAPI(title="Alertmanager to Mattermost Bridge")
+app = FastAPI()
 
-# Setup logging
-logger = setup_logger()
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Prometheus metrics
+ALERT_COUNTER = Counter('alert_bridge_alerts_total', 'Total number of alerts received', ['severity'])
+ALERT_LATENCY = Histogram('alert_bridge_processing_seconds', 'Time spent processing alerts')
+MATTERMOST_ERRORS = Counter('alert_bridge_mattermost_errors_total', 'Total number of Mattermost delivery errors')
 
 # Load configuration
 config = load_config()
 
-# Prometheus metrics
-ALERT_COUNTER = Counter('alert_bridge_alerts_total', 'Total number of alerts received', ['severity'])
-ALERT_LATENCY = Histogram('alert_bridge_latency_seconds', 'Alert processing latency in seconds')
-MATTERMOST_ERRORS = Counter('alert_bridge_mattermost_errors_total', 'Total number of Mattermost delivery errors')
-
-@app.post("/api/v1/alerts")
+@app.post("/api/v2/alerts")
 async def receive_alert(request: Request):
     try:
         alert_data = await request.json()
@@ -33,7 +30,7 @@ async def receive_alert(request: Request):
         
         with ALERT_LATENCY.time():
             # Handle both list and dictionary inputs
-            alerts = alert_data if isinstance(alert_data, list) else alert_data.get('alerts', [])
+            alerts = alert_data if isinstance(alert_data, list) else [alert_data]
             
             for alert in alerts:
                 severity = alert.get('labels', {}).get('severity', 'unknown')
@@ -68,11 +65,5 @@ async def receive_alert(request: Request):
         logger.error("Error processing alert", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint for Docker."""
-    return {"status": "healthy"}
-
-@app.get("/metrics")
-async def metrics():
-    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST) 
+# Start Prometheus metrics server
+start_http_server(8000) 

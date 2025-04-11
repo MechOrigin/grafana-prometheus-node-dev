@@ -14,8 +14,20 @@ alwaysApply: true
 - We use Docker to host the Grafana, Prometheus and Node-exporter
 - We use DigitalOcean to host our Docker containers at 138.68.249.92 for Mattermost
 - We use DigitalOcean to host our Docker containers at 167.71.155.226 for Grafana-Promtheus-Node-dev
-- We use the Alertmanager plugin integration on Mattermost to grab all alerts from Alertmanager.
 - If there is a Data source issue on grafana or No Data, its probably a wrong UID, check that first.
+
+## SSH Access Information
+- Both servers are running Ubuntu 22.04.5 LTS
+- SSH access is configured for root user on both servers:
+  - Grafana-Prometheus-Node: `ssh root@167.71.155.226`
+  - Mattermost Server: `ssh root@138.68.249.92`
+- System Status (as of April 2025):
+  - Grafana-Prometheus-Node (167.71.155.226):
+    - Disk usage: ~92.6% of 9.51GB (Monitor closely!)
+    - Memory usage: ~72%
+  - Mattermost Server (138.68.249.92):
+    - Disk usage: ~72.3% of 9.51GB
+    - Memory usage: ~68%
 
 <!-- - We use Nextjs App Router 15+ for our React Framework
 - We use neon.tech for our database

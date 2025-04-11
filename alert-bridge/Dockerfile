@@ -1,32 +1,24 @@
 FROM python:3.11-slim
 
-# Set working directory
 WORKDIR /app
 
-# Install curl for health checks and dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
+RUN python -m venv /app/venv
+ENV PATH="/app/venv/bin:$PATH"
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
-COPY src/ .
+COPY . .
 
-# Create non-root user
-RUN useradd -m appuser && chown -R appuser /app
+ENV FLASK_APP=src/main.py
+ENV FLASK_ENV=production
+ENV FLASK_DEBUG=0
+ENV PORT=10000
 
-# Switch to non-root user
-USER appuser
+EXPOSE 10000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:9094/health || exit 1
+USER nobody
 
-# Expose port
-EXPOSE 9094
-
-# Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:9094", "--workers", "4", "--access-logfile", "-", "main:app"] 
+CMD ["gunicorn", "--bind", "0.0.0.0:10000", "src.main:app"] 

@@ -11,7 +11,7 @@ route:
 receivers:
   - name: 'alert-bridge'
     webhook_configs:
-      - url: 'http://alert-bridge:9094/api/v1/alerts'
+      - url: 'http://alert-bridge:10000/api/v1/alerts'
         send_resolved: true
 
 inhibit_rules:

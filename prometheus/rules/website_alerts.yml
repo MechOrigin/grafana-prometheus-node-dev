@@ -3,12 +3,11 @@ groups:
     rules:
       - alert: TestAlert
         expr: vector(1)
-        for: 0m
+        for: 10s
         labels:
-          severity: warning
+          severity: info
         annotations:
-          summary: "Test Alert - Please Acknowledge"
-          description: "This is a test alert to verify Mattermost integration is working properly"
+          description: "This is a test alert to verify the alert flow from Prometheus → Alertmanager → Alert Bridge → Mattermost"
 
   - name: website_alerts
     rules:

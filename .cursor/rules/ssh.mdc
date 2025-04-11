@@ -1,0 +1,95 @@
+---
+description: Grafana-Prometheus-Node Development Environment
+globs: 
+alwaysApply: true
+---
+# SSH Configuration Documentation
+
+## Server Access Information
+
+### Grafana-Prometheus-Node Server
+- **Hostname**: alertmanager-droplet
+- **IP Address**: 167.71.155.226
+- **User**: root
+- **SSH Key**: ~/.ssh/alertmanager_droplet
+- **Quick Connect**: `ssh alertmanager-droplet`
+
+### Mattermost Server
+- **Hostname**: mattermost-droplet
+- **IP Address**: 138.68.249.92
+- **User**: root
+- **SSH Key**: ~/.ssh/mattermost_droplet
+- **Quick Connect**: `ssh mattermost-droplet`
+
+## SSH Configuration
+The SSH configuration is stored in `~/.ssh/config` with the following settings:
+
+```
+Host mattermost-droplet
+  HostName 138.68.249.92
+  User root
+  IdentityFile ~/.ssh/mattermost_droplet
+
+Host alertmanager-droplet
+  HostName 167.71.155.226
+  User root
+  IdentityFile ~/.ssh/alertmanager_droplet
+```
+
+## SSH Keys
+- **Alertmanager Key Location**:
+  - Private: `~/.ssh/alertmanager_droplet`
+  - Public: `~/.ssh/alertmanager_droplet.pub`
+
+- **Mattermost Key Location**:
+  - Private: `~/.ssh/mattermost_droplet`
+  - Public: `~/.ssh/mattermost_droplet.pub`
+
+## Security Best Practices
+1. **Private Key Protection**:
+   - Keep private keys secure and never share them
+   - Set appropriate permissions (600) on private keys
+   - Store private keys only on trusted devices
+
+2. **Key Management**:
+   - Regularly audit authorized keys on servers
+   - Remove unused or outdated keys
+   - Use unique keys for each server for better security isolation
+
+3. **Server Configuration**:
+   - Password authentication is disabled in favor of key-based authentication
+   - Root login is permitted only with SSH keys
+   - Regular security updates should be maintained
+
+## Troubleshooting
+If SSH connection fails:
+1. Check key permissions (`chmod 600` for private keys)
+2. Verify server connectivity (`ping <server-ip>`)
+3. Ensure the correct key is being used
+4. Check server's SSH service status
+5. Verify your public key is in the server's `~/.ssh/authorized_keys`
+
+## Backup Procedures
+1. Keep secure backups of:
+   - SSH private keys
+   - SSH configuration file
+   - Known hosts file
+2. Store backups in a secure, encrypted location
+3. Document key recovery procedures
+
+## Maintenance
+1. **Regular Tasks**:
+   - Monitor SSH logs for unauthorized access attempts
+   - Update SSH configuration as needed
+   - Rotate SSH keys periodically (recommended: every 6-12 months)
+
+2. **Security Audits**:
+   - Review authorized keys regularly
+   - Check SSH daemon configuration
+   - Monitor for unusual access patterns
+
+## Emergency Access
+In case of SSH key issues:
+1. DigitalOcean console access is available as a backup
+2. Keep emergency contact information for server administrators
+3. Document recovery procedures for key loss scenarios 
