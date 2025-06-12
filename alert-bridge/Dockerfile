@@ -4,9 +4,6 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-RUN python -m venv /app/venv
-ENV PATH="/app/venv/bin:$PATH"
-
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -21,4 +18,4 @@ EXPOSE 10000
 
 USER nobody
 
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "src.main:app"] 
+CMD ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "10000"] 

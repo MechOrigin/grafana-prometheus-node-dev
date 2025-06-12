@@ -1,84 +1,100 @@
 #!/bin/bash
 
 # Configuration
-DROPLET_IP="167.71.155.226"
-REMOTE_USER="root"
-REMOTE_DIR="/opt/monitoring"
+SERVER="grafana-prometheus"
+DEPLOY_DIR="/opt/grafana-prometheus-node-dev"
+COMPOSE_FILE="docker-compose.yml"
+BACKUP_DIR="${DEPLOY_DIR}/backups"
 
 # Colors for output
-RED='\033[0;31m'
 GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
 NC='\033[0m'
 
-# Function to check if a command succeeded
-check_status() {
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✓ $1${NC}"
-    else
-        echo -e "${RED}✗ $1${NC}"
-        exit 1
-    fi
+# Function to show script usage
+usage() {
+    echo -e "${YELLOW}Usage: $0 [sync|restart|deploy|cleanup|backup]${NC}"
+    echo "  sync    - Only sync files to server"
+    echo "  restart - Only restart Docker services"
+    echo "  deploy  - Sync files and restart services"
+    echo "  cleanup - Clean up old Docker images and volumes"
+    echo "  backup  - Create backup of configuration files"
+    exit 1
 }
 
-# Function to wait for a service to be ready
-wait_for_service() {
-    local service=$1
-    local port=$2
-    local max_attempts=30
-    local attempt=1
-
-    echo "Waiting for $service to be ready..."
-    while [ $attempt -le $max_attempts ]; do
-        if curl -s "http://${DROPLET_IP}:${port}" > /dev/null; then
-            echo -e "${GREEN}✓ $service is ready${NC}"
-            return 0
-        fi
-        echo "Attempt $attempt/$max_attempts: $service not ready yet..."
-        sleep 5
-        attempt=$((attempt + 1))
-    done
-    echo -e "${RED}✗ $service failed to start${NC}"
-    return 1
+# Function to sync files
+sync_files() {
+    echo -e "${GREEN}Syncing files to server...${NC}"
+    rsync -avz --exclude 'node_modules' \
+               --exclude '.git' \
+               --exclude 'dist' \
+               --exclude 'build' \
+               --exclude 'coverage' \
+               --exclude 'tmp' \
+               --exclude 'backups' \
+               ./ $SERVER:$DEPLOY_DIR/
 }
 
-# Create remote directory
-echo "Creating remote directory..."
-ssh ${REMOTE_USER}@${DROPLET_IP} "mkdir -p ${REMOTE_DIR}"
-check_status "Created remote directory"
+# Function to restart services
+restart_services() {
+    echo -e "${GREEN}Restarting Docker services...${NC}"
+    ssh $SERVER "cd $DEPLOY_DIR && docker-compose down && docker-compose up -d"
+}
 
-# Copy configuration files
-echo "Copying configuration files..."
-scp docker-compose.yml ${REMOTE_USER}@${DROPLET_IP}:${REMOTE_DIR}/
-check_status "Copied docker-compose.yml"
+# Function to clean up Docker resources
+cleanup_docker() {
+    echo -e "${GREEN}Cleaning up Docker resources...${NC}"
+    ssh $SERVER "cd $DEPLOY_DIR && \
+        docker-compose down && \
+        docker system prune -af --volumes && \
+        docker builder prune -af"
+}
 
-scp -r prometheus ${REMOTE_USER}@${DROPLET_IP}:${REMOTE_DIR}/
-check_status "Copied prometheus configuration"
+# Function to create backup
+create_backup() {
+    echo -e "${GREEN}Creating backup...${NC}"
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local backup_file="config_backup_${timestamp}.tar.gz"
+    
+    ssh $SERVER "cd $DEPLOY_DIR && \
+        mkdir -p $BACKUP_DIR && \
+        tar -czf $BACKUP_DIR/$backup_file \
+            alertmanager/alertmanager.yml \
+            prometheus/prometheus.yml \
+            grafana/provisioning \
+            blackbox/blackbox.yml \
+            docker-compose.yml"
+    
+    echo -e "${GREEN}Backup created: $backup_file${NC}"
+}
 
-scp -r alertmanager ${REMOTE_USER}@${DROPLET_IP}:${REMOTE_DIR}/
-check_status "Copied alertmanager configuration"
+# Check if we have an argument
+if [ $# -eq 0 ]; then
+    usage
+fi
 
-scp -r blackbox ${REMOTE_USER}@${DROPLET_IP}:${REMOTE_DIR}/
-check_status "Copied blackbox configuration"
+# Process based on argument
+case "$1" in
+    sync)
+        sync_files
+        ;;
+    restart)
+        restart_services
+        ;;
+    deploy)
+        sync_files
+        restart_services
+        ;;
+    cleanup)
+        cleanup_docker
+        ;;
+    backup)
+        create_backup
+        ;;
+    *)
+        usage
+        ;;
+esac
 
-scp -r grafana ${REMOTE_USER}@${DROPLET_IP}:${REMOTE_DIR}/
-check_status "Copied grafana configuration"
-
-# Stop existing containers and start new ones
-echo "Deploying services..."
-ssh ${REMOTE_USER}@${DROPLET_IP} "cd ${REMOTE_DIR} && docker-compose down && docker-compose up -d"
-check_status "Started services"
-
-# Wait for services to be ready
-wait_for_service "Grafana" "3001"
-wait_for_service "Prometheus" "9090"
-wait_for_service "Alertmanager" "9093"
-wait_for_service "Node Exporter" "9100"
-wait_for_service "Blackbox Exporter" "9115"
-
-echo -e "${GREEN}Deployment complete!${NC}"
-echo "Services are available at:"
-echo "Grafana: http://${DROPLET_IP}:3001"
-echo "Prometheus: http://${DROPLET_IP}:9090"
-echo "Alertmanager: http://${DROPLET_IP}:9093"
-echo "Node Exporter: http://${DROPLET_IP}:9100"
-echo "Blackbox Exporter: http://${DROPLET_IP}:9115" 
+echo -e "${GREEN}Operation completed successfully!${NC}"

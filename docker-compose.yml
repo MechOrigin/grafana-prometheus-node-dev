@@ -17,6 +17,12 @@ services:
       - '--web.console.templates=/usr/share/prometheus/consoles'
       - '--web.enable-lifecycle'
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "touch", "/prometheus/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     networks:
       monitoring:
         aliases:
@@ -62,7 +68,7 @@ services:
   alert-bridge:
     build: ./alert-bridge
     container_name: alert-bridge
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
+    command: ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "10000"]
     ports:
       - "10000:10000"
     environment:
@@ -167,6 +173,12 @@ services:
       - GF_SERVER_ROOT_URL=http://167.71.155.226:3001
       - GF_SECURITY_ALLOW_EMBEDDING=true
       - GF_AUTH_ANONYMOUS_ENABLED=false
+    healthcheck:
+      test: ["CMD", "touch", "/var/lib/grafana/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     restart: unless-stopped
     networks:
       monitoring:
@@ -192,10 +204,22 @@ networks:
 volumes:
   prometheus_data:
     driver: local
+    driver_opts:
+      type: none
+      device: /opt/monitoring/prometheus-data
+      o: bind
   grafana_data:
     driver: local
+    driver_opts:
+      type: none
+      device: /opt/monitoring/grafana-data
+      o: bind
   alertmanager_data:
     driver: local
+    driver_opts:
+      type: none
+      device: /opt/monitoring/alertmanager-data
+      o: bind
 
 secrets:
   mattermost_webhook_url:

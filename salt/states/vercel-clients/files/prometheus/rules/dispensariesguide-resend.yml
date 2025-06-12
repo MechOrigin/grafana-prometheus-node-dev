@@ -1,0 +1,35 @@
+groups:
+  - name: dispensariesguide-resend
+    rules:
+      - alert: DispensariesGuide_ResendAPI_Down
+        expr: probe_success{instance="https://api.resend.com"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          client: dispensariesguide
+          service: resend
+        annotations:
+          summary: "Resend API is down for DispensariesGuide"
+          description: "Resend API has been down for more than 1 minute"
+
+      - alert: DispensariesGuide_ResendHighLatency
+        expr: probe_duration_seconds{instance="https://api.resend.com"} > 1
+        for: 5m
+        labels:
+          severity: warning
+          client: dispensariesguide
+          service: resend
+        annotations:
+          summary: "High latency on Resend API for DispensariesGuide"
+          description: "Resend API response time is higher than 1 second for more than 5 minutes"
+
+      - alert: DispensariesGuide_EmailDeliveryFailure
+        expr: rate(resend_email_delivery_failures_total{client="dispensariesguide"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          client: dispensariesguide
+          service: resend
+        annotations:
+          summary: "Email delivery failures detected for DispensariesGuide"
+          description: "There have been email delivery failures in the last 5 minutes" 

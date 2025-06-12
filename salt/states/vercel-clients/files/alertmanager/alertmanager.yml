@@ -1,0 +1,15 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname', 'job']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+  receiver: 'mattermost'
+
+receivers:
+  - name: 'mattermost'
+    webhook_configs:
+      - url: 'http://138.68.249.92:8065/hooks/ou4n5jny43fp5mttzmdokpuh1a'
+        send_resolved: true 

@@ -1,0 +1,3 @@
+file_roots:
+  base:
+    - /Users/solheimtech/Desktop/git/grafana-prometheus-node-dev/salt/states

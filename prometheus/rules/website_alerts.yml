@@ -1,62 +1,62 @@
 groups:
-  - name: test_alerts
-    rules:
-      - alert: TestAlert
-        expr: vector(1)
-        for: 10s
-        labels:
-          severity: info
-        annotations:
-          description: "This is a test alert to verify the alert flow from Prometheus → Alertmanager → Alert Bridge → Mattermost"
+  # - name: test_alerts
+  #   rules:
+  #     - alert: TestAlert
+  #       expr: vector(1)
+  #       for: 10s
+  #       labels:
+  #         severity: info
+  #       annotations:
+  #         description: "This is a test alert to verify the alert flow from Prometheus → Alertmanager → Alert Bridge → Mattermost"
 
   - name: website_alerts
     rules:
-      - alert: ImmediateTestAlert
-        expr: 1
-        for: 1m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Immediate Test Alert"
-          description: "This is an immediate test alert to verify the alerting pipeline."
+      # - alert: ImmediateTestAlert
+      #   expr: 1
+      #   for: 1m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: "Immediate Test Alert"
+      #     description: "This is an immediate test alert to verify the alerting pipeline."
 
-      - alert: FrequentTestAlert
-        expr: (time() % 60) < bool 30
-        for: 10s
-        labels:
-          severity: info
-        annotations:
-          summary: "Frequent Test Alert"
-          description: "This alert fires every minute for 30 seconds."
+      # - alert: FrequentTestAlert
+      #   expr: (time() % 60) < bool 30
+      #   for: 10s
+      #   labels:
+      #     severity: info
+      #   annotations:
+      #     summary: "Frequent Test Alert"
+      #     description: "This alert fires every minute for 30 seconds."
 
-      - alert: CriticalTestAlert
-        expr: (time() % 300) < bool 60
-        for: 30s
-        labels:
-          severity: critical
-        annotations:
-          summary: "Critical Test Alert"
-          description: "This is a critical test alert that fires every 5 minutes."
+      # - alert: CriticalTestAlert
+      #   expr: (time() % 300) < bool 60
+      #   for: 30s
+      #   labels:
+      #     severity: critical
+      #   annotations:
+      #     summary: "Critical Test Alert"
+      #     description: "This is a critical test alert that fires every 5 minutes."
 
-      - alert: MultiLabelTestAlert
-        expr: (time() % 600) < bool 60
-        for: 30s
-        labels:
-          severity: warning
-          environment: test
-          service: monitoring
-        annotations:
-          summary: "Multi-Label Test Alert"
-          description: "This alert includes multiple labels for testing."
+      # - alert: MultiLabelTestAlert
+      #   expr: (time() % 600) < bool 60
+      #   for: 30s
+      #   labels:
+      #     severity: warning
+      #     environment: test
+      #     service: monitoring
+      #   annotations:
+      #     summary: "Multi-Label Test Alert"
+      #     description: "This alert includes multiple labels for testing."
 
-      - alert: TestAlert
-        expr: (time() % 300) < bool 60
-        for: 30s
-        labels:
-          severity: warning
-        annotations:
-          summary: "Test Alert - This is a test alert"
-          description: "This is a test alert that fires every 5 minutes for 1 minute to verify the alerting pipeline."
+      # - alert: TestAlert
+      #   expr: (time() % 300) < bool 60
+      #   for: 30s
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: "Test Alert - This is a test alert"
+      #     description: "This is a test alert that fires every 5 minutes for 1 minute to verify the alerting pipeline."
 
       - alert: WebsiteDown
         expr: probe_success == 0
@@ -164,4 +164,40 @@ groups:
           severity: warning
         annotations:
           summary: "Container {{ $labels.name }} is unhealthy"
-          description: "Container {{ $labels.name }} has not been seen for more than 5 minutes." 
+          description: "Container {{ $labels.name }} has not been seen for more than 5 minutes."
+
+      - alert: ResendAPIDown
+        expr: probe_success{job="resend-monitor"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Resend API is down"
+          description: "Resend API endpoint is not responding. This will affect email delivery for all clients."
+
+      - alert: ResendHighLatency
+        expr: http_request_duration_seconds{job="resend-monitor"} > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Resend API high latency"
+          description: "Resend API is experiencing high latency (above 1 second) for more than 5 minutes."
+
+      - alert: ResendErrorRate
+        expr: rate(http_requests_total{job="resend-monitor", status=~"5.."}[5m]) / rate(http_requests_total{job="resend-monitor"}[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Resend API high error rate"
+          description: "Resend API is experiencing an error rate above 1% for more than 5 minutes."
+
+      - alert: EmailDeliveryFailure
+        expr: resend_email_delivery_failures_total > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Email delivery failures detected"
+          description: "Resend is reporting email delivery failures. This may affect client communications." 

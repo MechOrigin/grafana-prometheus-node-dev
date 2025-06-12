@@ -1,0 +1,57 @@
+groups:
+  - name: dispensariesguide_resend
+    rules:
+      - alert: ResendAPIDown
+        expr: probe_success{job="vercel-clients", instance="https://api.resend.com/emails"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          client: dispensariesguide
+          service: resend
+        annotations:
+          summary: "Resend API is down for DispensariesGuide"
+          description: "Resend API endpoint is not responding. This will affect email delivery for DispensariesGuide."
+
+      - alert: ResendHighLatency
+        expr: probe_duration_seconds{job="vercel-clients", instance="https://api.resend.com/emails"} > 1
+        for: 5m
+        labels:
+          severity: warning
+          client: dispensariesguide
+          service: resend
+        annotations:
+          summary: "Resend API high latency for DispensariesGuide"
+          description: "Resend API is experiencing high latency (above 1 second) for more than 5 minutes."
+
+      - alert: EmailDeliveryFailure
+        expr: rate(resend_email_delivery_failures_total{client="dispensariesguide"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          client: dispensariesguide
+          service: resend
+        annotations:
+          summary: "Email delivery failures for DispensariesGuide"
+          description: "Resend is reporting email delivery failures for DispensariesGuide."
+
+      - alert: ResendQuotaExceeded
+        expr: resend_quota_remaining{client="dispensariesguide"} < 1000
+        for: 1h
+        labels:
+          severity: warning
+          client: dispensariesguide
+          service: resend
+        annotations:
+          summary: "Resend quota running low for DispensariesGuide"
+          description: "Resend email quota is running low (less than 1000 emails remaining)."
+
+      - alert: ResendErrorRate
+        expr: rate(resend_api_errors_total{client="dispensariesguide"}[5m]) / rate(resend_api_requests_total{client="dispensariesguide"}[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+          client: dispensariesguide
+          service: resend
+        annotations:
+          summary: "High Resend API error rate for DispensariesGuide"
+          description: "Resend API is experiencing an error rate above 1% for more than 5 minutes." 

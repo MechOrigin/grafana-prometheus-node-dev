@@ -1,0 +1,23 @@
+services:
+  salt-master:
+    image: poppertech/salt-master:latest
+    ports:
+      - "4505:4505"  # Salt publish port
+      - "4506:4506"  # Salt return port
+    volumes:
+      - ./salt:/etc/salt
+      - ./salt/pillar:/srv/pillar
+      - ./salt/states:/srv/salt
+    networks:
+      - salt-network
+
+  salt-minion:
+    image: poppertech/salt-minion:latest
+    depends_on:
+      - salt-master
+    networks:
+      - salt-network
+
+networks:
+  salt-network:
+    driver: bridge 

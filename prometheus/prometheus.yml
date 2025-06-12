@@ -2,9 +2,6 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
-web:
-  enable_lifecycle: true
-
 alerting:
   alertmanagers:
     - static_configs:
@@ -71,3 +68,31 @@ scrape_configs:
           - https://acronymmeaning.com
         labels:
           site: acronymmeaning
+
+  - job_name: 'resend-monitor'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - https://api.resend.com/health  # Resend API health endpoint
+          - https://api.resend.com/emails  # Resend API emails endpoint
+        labels:
+          what: resend_api
+          service: email
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  - job_name: 'resend-metrics'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - resend-exporter:8080  # Your Resend metrics exporter
+        labels:
+          service: email
+          component: resend
